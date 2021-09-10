@@ -6,7 +6,7 @@ from sys import stdout, argv, exit
 
 
 def usage():
-    print('USAGE:   python find_omega_neighbours.py -mass=<float>  (-ccs=<float> | -omega=<float>) [ -db=name_of_pdb_database ] [ -rank=[<int> | all] ] [ -massweight=<float> ] [ -omegaweight=<float> ] [ -h ]')
+    print('USAGE:   python find_omega_neighbours.py -mass=<float>  (-ccs=<float> | -omega=<float>) [ -db=name_of_pdb_database ] [ -rank=[<int> | all] ] [ -num=[ <int> | all] ] [ -massweight=<float> ] [ -omegaweight=<float> ] [ -h ]')
     print('  Default database    = {:s}'.format(ipd.db_default))
     print('  Default pisa_rank   = {:s}'.format(ipd.rank_default))
     print('  Default massweight  = {:f}'.format(ipd.mw_default))
@@ -33,6 +33,7 @@ if __name__ == '__main__':
     bCCS         = False
     bOmega       = False
     bRank        = False
+    bNum         = False
     bMassweight  = False
     bOmegaweight = False
 
@@ -77,6 +78,16 @@ if __name__ == '__main__':
                 print(value.isdigit())
                 stdout.write('-rank: Permitted values for the pisa rank are \'all\' or integer numbers\n')
                 exit(3)
+
+        elif flag == '-num':
+            bNum = True
+            if value.isdigit() or value=='all':
+                opt_num = value
+            else:
+                print(value)
+                print(value.isdigit())
+                stdout.write('-num: Permitted values for the number of neighbours are \'all\' or integer numbers\n')
+                exit(4)
                 
         elif flag == '-massweight':
             bMassweight = True
@@ -88,7 +99,7 @@ if __name__ == '__main__':
             
         else:
             stdout.write('Unrecognised option {:s}\n'.format(arg))
-            exit(4)
+            exit(5)
 
     if not (bMass and (bCCS or bOmega)):
         has_db = 'o'
@@ -111,6 +122,10 @@ if __name__ == '__main__':
         if bRank:
             has_rank = 'x'
 
+        has_num = 'o'
+        if bNum:
+            has_rank = 'x'
+
         has_mw = 'o'
         if bMassweight:
             has_mw = 'x'
@@ -120,11 +135,11 @@ if __name__ == '__main__':
             has_ow = 'x'
         
         stdout.write('Need more arguments: -mass({:s}) (-ccs({:s}) | -omega({:s})) [ -db({:s}) ] [ -rank(:s) ] [ -massweight(:s) ] [ -omegaweight(:s) ]\n'.format(
-            has_db, has_mass, has_ccs, has_omega, has_rank, has_mw, has_ow))
+            has_db, has_mass, has_ccs, has_omega, has_rank, has_num, has_mw, has_ow))
         
-        exit(5)
+        exit(6)
 
-
+        
     if bMassweight:
         mw = float(opt_mw)
     else:
@@ -166,11 +181,18 @@ if __name__ == '__main__':
     else:
         stdout.write('\n')
         rank=ipd.rank_default
+
+    if bNum:
+        numneighbours = opt_num
+        stdout.write(' will print {:s} neighbours\n'.format(numneighbours))
+    else:
+        stdout.write('\n')
+        numneighbours=ipd.num_default
         
     db.read_database(db_name, rank=rank)
 
     stdout.write('\nFinding neighbours\n\n')
-    db.find_neighbours(p, massweight=mw, omegaweight=ow)
+    db.find_neighbours(p, massweight=mw, omegaweight=ow, numneighbours=numneighbours)
     stdout.write('              {:>5s} {:>5s} {:>5s} {:>12s} {:>10s} {:>6s}'.format('Dist.', 'PDB', 'PISA', 'Mass (Da)', 'CCS (A^2)', 'omega'))
     stdout.write('\n')
     db.print_neighbours(stdout)

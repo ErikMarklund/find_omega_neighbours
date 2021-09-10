@@ -6,6 +6,7 @@ db_default   = 'pdb_database.dat'
 mw_default   = 1.
 ow_default   = 5.
 rank_default = '1'
+num_default  = 10
 lineparams = [0.457126, 2/3.]
 
 def calc_omega(m, ccs):
@@ -162,8 +163,18 @@ class pdb_ccs:
 
         return db
 
-    def find_neighbours(self, p, massweight=mw_default, omegaweight=ow_default, mass_cutoff=5, omega_cutoff=0.2):
+    def find_neighbours(self, p, massweight=mw_default, omegaweight=ow_default, mass_cutoff=5, omega_cutoff=0.2, numneighbours=num_default):
         self.neighbours = []
+
+        if type(numneighbours) not in ( type(' '), type(1) ):
+            print('illegal number of neighbours:')
+            print(numneighbours)
+            return
+        
+        if numneighbours=='all':
+            num = -1
+        else:
+            num = int(numneighbours)
 
         N = []
         
@@ -173,7 +184,7 @@ class pdb_ccs:
             
         N_sorted = sorted(N, key=itemgetter(4))
 
-        for e in N_sorted[:10]:
+        for e in N_sorted[:num]:
             self.neighbours.append(pdb_entry(name=e[0], m=e[1], ccs=e[2], omega=e[3], pdistance=e[4], pisa_rank=e[5]))
         for n in self.neighbours:
             n.calc_omega()
